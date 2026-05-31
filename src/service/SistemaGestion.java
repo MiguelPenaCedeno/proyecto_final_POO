@@ -2,6 +2,7 @@ package service;
 
 import java.time.*;
 import java.util.*;
+import java.io.*;
 import model.*;
 import exceptions.*;
 
@@ -144,5 +145,97 @@ public class SistemaGestion {
             }
         }
         return null;
+    }
+
+    //aqui organizamos el inventario de equipos agrupado por laboratorio, para cada laboratorio devolvemos la lista de sus equipos
+    public HashMap<String, ArrayList<Equipo>> inventarioPorLaboratorio() {
+        HashMap<String, ArrayList<Equipo>> inventario = new HashMap<>();
+        for (Equipo equipo : equipos.values()) {
+            String laboratorio = equipo.getLaboratorio();
+            if (!inventario.containsKey(laboratorio)) {
+                inventario.put(laboratorio, new ArrayList<>());
+            }
+            inventario.get(laboratorio).add(equipo);
+        }
+        return inventario;
+    }
+
+    // en este metodo por cada laboratorio determinamos el equipo con mayor numero de usos
+    public HashMap<String, Equipo> equipoMasUsadoPorLaboratorio() {
+        HashMap<String, Equipo> resultado = new HashMap<>();
+        for (Equipo equipo : equipos.values()) {
+            String laboratorio = equipo.getLaboratorio();
+            Equipo actual = resultado.get(laboratorio);
+            if (actual == null || equipo.getUsos() > actual.getUsos()) {
+                resultado.put(laboratorio, equipo);
+            }
+        }
+        return resultado;
+    }
+
+    // este metodo ahora cuenta por usuario cuantas de sus sesiones fueron cerradas con penalizacion
+    //ese conteo es el indice de uso indebido
+
+    public HashMap<Usuario, Integer> usuariosPorUsoIndebido() {
+        HashMap<Usuario, Integer> conteo = new HashMap<>();
+        for (Sesion sesion : sesiones) {
+            if (sesion.estaCerrada() && sesion.getPenalizacion() > 0) {
+                Usuario responsable = sesion.getUsuario();
+                if (!conteo.containsKey(responsable)) {
+                    conteo.put(responsable, 1);
+                } else {
+                    conteo.put(responsable, conteo.get(responsable) + 1);
+                }
+            }
+        }
+        return conteo;
+    }
+
+    // registramos en este metodo en el sistema una lista de equipos cargada desde archivo, por cierto esto tambien es una accion exclusiva de administradores
+    public int cargarEquipos(ArrayList<Equipo> equiposCargados) throws AccesoDenegadoException {
+        validarAdministrador();
+        int registrados = 0;
+        for (Equipo equipo : equiposCargados) {
+            if (!equipos.containsKey(equipo.getCodigo())) {
+                equipos.put(equipo.getCodigo(), equipo);
+                registrados++;
+            }
+        }
+        return registrados;
+    }
+
+    //aqui registramos en el sistema una lista de usuarios cargada desde archivo, una vez mas, es unm etodo exclusivo de administradores
+    public int cargarUsuarios(ArrayList<Usuario> usuariosCargados) throws AccesoDenegadoException {
+        validarAdministrador();
+        int registrados = 0;
+        for (Usuario usuario : usuariosCargados) {
+            if (!usuarios.containsKey(usuario.getCodigo())) {
+                usuarios.put(usuario.getCodigo(), usuario);
+                registrados++;
+            }
+        }
+        return registrados;
+    }
+
+    // en este metodo guardamos el estado completo del sistema en un archivo binario escribiendo las tres colecciones en orden: usuarios, equipos y sesiones
+    public void guardarEstado(String ruta) throws AccesoDenegadoException, IOException {
+        validarAdministrador();
+        ObjectOutputStream salida = new ObjectOutputStream(new FileOutputStream(ruta));
+        salida.writeObject(usuarios);
+        salida.writeObject(equipos);
+        salida.writeObject(sesiones);
+        salida.close();
+    }
+
+    // aqui se recupera el estado completo del sistema desde un archivo binario,leyendo las tres colecciones en el mismo orden en que se escribieron
+    @SuppressWarnings("unchecked")
+    public void recuperarEstado(String ruta)
+            throws AccesoDenegadoException, IOException, ClassNotFoundException {
+        validarAdministrador();
+        ObjectInputStream entrada = new ObjectInputStream(new FileInputStream(ruta));
+        this.usuarios = (HashMap<String, Usuario>) entrada.readObject();
+        this.equipos = (HashMap<String, Equipo>) entrada.readObject();
+        this.sesiones = (ArrayList<Sesion>) entrada.readObject();
+        entrada.close();
     }
 }
