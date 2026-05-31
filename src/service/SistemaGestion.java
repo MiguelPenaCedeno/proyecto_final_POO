@@ -1,5 +1,6 @@
 package service;
 
+import java.time.*;
 import java.util.*;
 import model.*;
 import exceptions.*;
@@ -79,5 +80,69 @@ public class SistemaGestion {
             throw new IllegalArgumentException("Ya existe un usuario con el codigo " + usuario.getCodigo());
         }
         usuarios.put(usuario.getCodigo(), usuario);
+    }
+
+    // este metodo programa una sesion de uso de un equipo, el equipo debe estar disponible y el responsable debe ser estudiante o monitor
+
+    public Sesion programarSesion(String codigoSesion, String codigoEquipo, String codigoResponsable,LocalDateTime inicio) throws EntidadNoEncontradaException, EquipoNoDisponibleException {
+
+        Equipo equipo = equipos.get(codigoEquipo);
+        if (equipo == null) {
+            throw new EntidadNoEncontradaException("No existe un equipo con el codigo " + codigoEquipo);
+        }
+        Usuario responsable = usuarios.get(codigoResponsable);
+        if (responsable == null) {
+            throw new EntidadNoEncontradaException("No existe un usuario con el codigo " + codigoResponsable);
+        }
+
+        if (responsable.getRol() == Rol.ADMINISTRADOR) {
+            throw new IllegalArgumentException("Un administrador no puede ser responsable de una sesion de uso");
+        }
+
+        if (equipo.getEstado() != EstadoEquipo.DISPONIBLE) {
+            throw new EquipoNoDisponibleException("El equipo " + codigoEquipo + " no esta disponible, estado actual: " + equipo.getEstado());
+        }
+
+        Sesion sesion = new Sesion(codigoSesion, equipo, responsable, inicio);
+        sesiones.add(sesion);
+        equipo.setEstado(EstadoEquipo.EN_USO);
+        equipo.incrementarUsos();
+        return sesion;
+    }
+
+    //indicamos si el usuario autenticado puede programar sesiones a nombre de otros
+    public boolean puedeProgramarParaOtros() {
+        return usuarioActual != null && usuarioActual.getRol() == Rol.ADMINISTRADOR;
+    }
+
+    // en este metodo se cierra una sesion de uso abierta, calcula la penalizacion segun el tiempo de uso y devuelve el equipo a estado disponible
+    public double cerrarSesion(String codigoSesion, LocalDateTime fechaCierre) throws AccesoDenegadoException, EntidadNoEncontradaException, CierreSesionException {
+
+        validarAdministrador();
+        Sesion sesion = buscarSesion(codigoSesion);
+        if (sesion == null) {
+            throw new EntidadNoEncontradaException("No existe una sesion con el codigo " + codigoSesion);
+        }
+        if (sesion.estaCerrada()) {
+            throw new CierreSesionException("La sesion " + codigoSesion + " ya fue cerrada");
+        }
+        if (fechaCierre.isBefore(sesion.getInicio())) {
+            throw new CierreSesionException("La fecha de cierre no puede ser anterior a la de inicio");
+        }
+
+        double penalizacion = sesion.cerrar(fechaCierre);
+        sesion.getEquipo().setEstado(EstadoEquipo.DISPONIBLE);
+        return penalizacion;
+    }
+
+    //aqui buscamos una sesion por su codigo recorriendo la lista y devuelve null si no existe
+    // lo declaramos private pq solo lo llama un metodo dentro de esta misma clase q es el anterior de cerrarSesion
+    private Sesion buscarSesion(String codigoSesion) {
+        for (Sesion sesion : sesiones) {
+            if (sesion.getCodigo().equals(codigoSesion)) {
+                return sesion;
+            }
+        }
+        return null;
     }
 }
