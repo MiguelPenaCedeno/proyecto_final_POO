@@ -2,6 +2,7 @@ package service;
 
 import java.util.*;
 import model.*;
+import exceptions.*;
 
 //esta clase sirve de servicio de gestion del sistema, mantiene las colecciones de usuarios, equipos y sesiones
 
@@ -23,7 +24,7 @@ public class SistemaGestion {
         sembrarAdministrador();
     }
 
-    // crea un administrador inicial para permitir el primer ingreso al sistema cuando todavia no se han cargado usuarios desde archivo
+    // creamos un administrador inicial para permitir el primer ingreso al sistema cuando todavia no se han cargado usuarios desde archivo
     private void sembrarAdministrador() {
         Administrador admin = new Administrador("admin", "Administrador", "admin123");
         usuarios.put(admin.getCodigo(), admin);
@@ -31,5 +32,52 @@ public class SistemaGestion {
 
     public Usuario getUsuarioActual() {
         return usuarioActual;
+    }
+
+    //Validamos las credenciales contra los usuarios registrados y, si son correctas, deja al usuario como autenticado. Tambien lanza excepcion si el
+    //codigo no existe o la clave no coincide
+    public void login(String codigo, String clave) throws CredencialInvalidaException {
+        Usuario usuario = usuarios.get(codigo);
+        if (usuario == null) {
+            throw new CredencialInvalidaException("No existe un usuario con el codigo " + codigo);
+        }
+        if (!usuario.validarClave(clave)) {
+            throw new CredencialInvalidaException("La clave ingresada no es correcta");
+        }
+        this.usuarioActual = usuario;
+    }
+
+    // cierra la sesion del usuario autenticado
+    public void logout() {
+        this.usuarioActual = null;
+    }
+
+    //Verificamos que haya un usuario autenticado y que sea administrador
+    private void validarAdministrador() throws AccesoDenegadoException {
+        if (usuarioActual == null) {
+            throw new AccesoDenegadoException("Debe iniciar sesion para ejecutar esta operacion");
+        }
+        if (usuarioActual.getRol() != Rol.ADMINISTRADOR) {
+            throw new AccesoDenegadoException("Solo un administrador puede ejecutar esta operacion");
+        }
+    }
+
+    //registramosun equipo nuevo en el sistema, esta operacion es exclusiva de administradores
+    public void registrarEquipo(Equipo equipo) throws AccesoDenegadoException {
+        validarAdministrador();
+        if (equipos.containsKey(equipo.getCodigo())) {
+            throw new IllegalArgumentException("Ya existe un equipo con el codigo " + equipo.getCodigo());
+        }
+        equipos.put(equipo.getCodigo(), equipo);
+    }
+
+    // registramos un usuario nuevo en el sistema, esta operacion tambien es exclusiva de administradores
+
+    public void registrarUsuario(Usuario usuario) throws AccesoDenegadoException {
+        validarAdministrador();
+        if (usuarios.containsKey(usuario.getCodigo())) {
+            throw new IllegalArgumentException("Ya existe un usuario con el codigo " + usuario.getCodigo());
+        }
+        usuarios.put(usuario.getCodigo(), usuario);
     }
 }
