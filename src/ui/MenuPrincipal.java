@@ -9,7 +9,11 @@ import model.*;
 import service.*;
 import exceptions.*;
 
-//Esta clase es el menu de interaccion por consola con el sistema
+/**
+ * Menu de interaccion por consola con el sistema. Muestra las opciones,
+ * lee la eleccion del usuario y delega cada accion en el servicio de
+ * gestion.
+ */
 public class MenuPrincipal {
 
     private SistemaGestion sistema;
@@ -19,7 +23,10 @@ public class MenuPrincipal {
         this.sistema = new SistemaGestion();
     }
 
-    // bucle principal del sistema donde mostramos el menu
+    /**
+     * Bucle principal del sistema. Muestra el menu y atiende la opcion
+     * elegida en cada vuelta hasta que el usuario decide salir.
+     */
     public void iniciar() {
         boolean salir = false;
         while (!salir) {
@@ -355,7 +362,10 @@ public class MenuPrincipal {
         }
     }
 
-    // comprimimos el menu en un metodo
+    /**
+     * Imprime el encabezado con la sesion actual y la lista de opciones
+     * del menu principal.
+     */
     private void mostrarMenu() {
         System.out.println("Sistema de Gestion de Equipos de Laboratorio");
         Usuario actual = sistema.getUsuarioActual();

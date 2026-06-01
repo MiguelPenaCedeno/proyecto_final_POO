@@ -4,10 +4,20 @@ import java.io.*;
 import java.util.*;
 import model.*;
 
-// esta clase carga los equipos y usuarios desde archivos de texto delimitados por asterisco
+/**
+ * Carga equipos y usuarios desde archivos de texto delimitados por
+ * asterisco. Cada linea representa una entidad y no se usan encabezados.
+ */
 public class CargadorTexto {
 
-    //aqui leemos los equipos desde un archivo de texto, cada linea tiene el formato codigo*nombre*tipo*laboratorio*estado*valor*usos
+    /**
+     * Lee los equipos desde un archivo de texto. Cada linea tiene el
+     * formato codigo*nombre*tipo*laboratorio*estado*valor*usos.
+     *
+     * @param ruta ruta del archivo de equipos
+     * @return lista de equipos leidos del archivo
+     * @throws IOException si el archivo no se puede leer
+     */
     public ArrayList<Equipo> cargarEquipos(String ruta) throws IOException {
         ArrayList<Equipo> equipos = new ArrayList<>();
         BufferedReader lector = new BufferedReader(new FileReader(ruta));
@@ -31,7 +41,17 @@ public class CargadorTexto {
         return equipos;
     }
 
-    //este metodo lee los usuarios desde un archivo de texto, el formato depende del rol, que es el tercer campo de cada linea
+    /**
+     * Lee los usuarios desde un archivo de texto. El formato depende del
+     * rol, que es el tercer campo de cada linea:
+     * ESTUDIANTE: codigo*nombre*rol*clave*programa
+     * MONITOR: codigo*nombre*rol*clave*area
+     * ADMINISTRADOR: codigo*nombre*rol*clave
+     *
+     * @param ruta ruta del archivo de usuarios
+     * @return lista de usuarios leidos del archivo
+     * @throws IOException si el archivo no se puede leer
+     */
     public ArrayList<Usuario> cargarUsuarios(String ruta) throws IOException {
         ArrayList<Usuario> usuarios = new ArrayList<>();
         BufferedReader lector = new BufferedReader(new FileReader(ruta));
