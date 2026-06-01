@@ -1,0 +1,4 @@
+U01*Carlos Ramirez*ESTUDIANTE*clave123*Ingenieria Electronica
+U02*Ana Torres*ESTUDIANTE*clave456*Ingenieria de Sistemas
+U03*Luis Gomez*MONITOR*clave789*LabElectronica
+U04*Sofia Mendez*ADMINISTRADOR*admin456

@@ -238,4 +238,26 @@ public class SistemaGestion {
         this.sesiones = (ArrayList<Sesion>) entrada.readObject();
         entrada.close();
     }
+
+    //metodo donde creamos y registramos un nuevo administrador en el sistema, vale la pena decir que nuevamente esto solo lo pueden hacer admins
+    public void crearAdministrador(String codigo, String nombre, String clave) throws AccesoDenegadoException {
+        validarAdministrador();
+        if (usuarios.containsKey(codigo)) {
+            throw new IllegalArgumentException("Ya existe un usuario con el codigo " + codigo);
+        }
+        Administrador admin = new Administrador(codigo, nombre, clave);
+        usuarios.put(codigo, admin);
+    }
+
+    // este metodo devuelve la lista de los administradores registrados en el sistema, solo admins
+    public ArrayList<Administrador> listarAdministradores() throws AccesoDenegadoException {
+        validarAdministrador();
+        ArrayList<Administrador> resultado = new ArrayList<>();
+        for (Usuario usuario : usuarios.values()) {
+            if (usuario.getRol() == Rol.ADMINISTRADOR) {
+                resultado.add((Administrador) usuario);
+            }
+        }
+        return resultado;
+    }
 }
