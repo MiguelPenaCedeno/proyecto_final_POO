@@ -307,9 +307,43 @@ public class MenuPrincipal {
                     }
                     break;
                 }
-                case "13":
-                    // gestion de administradores
+                case "13": {
+                    System.out.println("Gestion de administradores");
+                    System.out.println("a. Crear administrador");
+                    System.out.println("b. Listar administradores");
+                    System.out.print("Opcion: ");
+                    String sub = sc.nextLine().trim().toLowerCase();
+
+                    if (sub.equals("a")) {
+                        System.out.print("Codigo: ");
+                        String codigo = sc.nextLine().trim();
+                        System.out.print("Nombre: ");
+                        String nombre = sc.nextLine().trim();
+                        System.out.print("Clave: ");
+                        String clave = sc.nextLine().trim();
+                        try {
+                            sistema.crearAdministrador(codigo, nombre, clave);
+                            System.out.println("Administrador creado.");
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Error: " + e.getMessage());
+                        } catch (AccesoDenegadoException e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                    } else if (sub.equals("b")) {
+                        try {
+                            ArrayList<Administrador> admins = sistema.listarAdministradores();
+                            System.out.println("Administradores registrados:");
+                            for (Administrador admin : admins) {
+                                System.out.println("  " + admin.getCodigo() + " - " + admin.getNombre());
+                            }
+                        } catch (AccesoDenegadoException e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                    } else {
+                        System.out.println("Opcion no valida.");
+                    }
                     break;
+                }
                 case "14":
                     salir = true;
                     System.out.println("Saliendo del sistema.");
